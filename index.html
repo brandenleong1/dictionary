@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Dictionary</title>
+
+		<link href="style.css" rel="stylesheet" type="text/css" />
+		<style id="loading-css">
+			body *:not(#loading) {
+				opacity: 0;
+			}
+		</style>
+		<link href="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/themes/vertical_layout.css" rel="stylesheet" type="text/css" />
+		<link href="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/themes/colors.css" rel="stylesheet" type="text/css" />
+	</head>
+	
+	<body>
+		<div class="content-container-vertical">
+			<div class="content-header">Dictionary</div>
+			<div class="content-container-horizontal" style="flex-wrap: wrap; row-gap: 10px;">
+				<div class="content-text button-positive" onclick="document.querySelector('#upload-file-btn').click();">Upload File</div>
+				<input type="file" id="upload-file-btn" style="display: none;" onclick="this.value = null;"/>
+				<div class="content-text button-positive" onclick="saveFile();">Save To File</div>
+				<div class="content-text button-positive" onclick="Popup.popup(document.querySelector('#popup-add-word'), fallingEdgeFunc = clearAddWordPopup);">Add Word</div>
+				<div class="content-text button-positive" onclick="clearDict();">Clear Dictionary</div>
+				<div class="content-text button-positive" onclick="Popup.popup(document.querySelector('#popup-filter-words'));">Filter Words</div>
+			</div>
+			<div class="content-container-vertical" id="term-list-concealer"></div>
+			<div class="content-container-vertical" id="term-list"></div>
+		</div>
+		
+		<div id="bottom-bar">
+			<img id="help" src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/icons/help.svg" />
+			<img id="settings" src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/icons/settings.svg" />
+		</div>
+
+		<div class="popup" id="popup-help">
+			<div class="content-header">Help</div>
+			<div class="content-container-vertical">
+				<div class="content-text">Text styled like <span style="color: var(--color_btn);">this</span> are buttons.</div>
+				<div class="content-text">Text styled like <span style="color: var(--color_btn2);">this</span> are links to other words in the dictionary. Use the <i>/get(word, language)</i> command in the description to create one.</div>
+			</div>
+		</div>
+		<div class="popup" id="popup-settings">
+			<div class="content-header">Settings</div>
+			<div class="content-text" style="overflow-y: hidden;">
+				<span class="button-positive" id="theme-btn">Change Theme:</span>
+				<span style="position: relative; display: inline-flex; width: 85px;"> &nbsp;
+					<span id="theme-label-1" style="position: absolute; max-width: 80px; overflow-x: hidden; text-overflow: ellipsis;"></span>
+					<span id="theme-label-2" style="max-width: 80px; overflow-x: hidden; text-overflow: ellipsis;"></span>
+				</span>
+			</div>
+		</div>
+		<div class="popup" id="popup-add-word">
+			<div class="content-header">Add Word</div>
+			<div class="content-table">
+				<table class="no-border">
+					<tr>
+						<td>Word</td>
+						<td><input type="text" id="add-word-word" placeholder="Word"></td>
+					</tr>
+					<tr>
+						<td>Definition</td>
+						<td><input type="text" id="add-word-def" placeholder="Definition"></td>
+					</tr>
+					<tr>
+						<td>Language</td>
+						<td><input type="text" id="add-word-lang" placeholder="Language"></td>
+					</tr>
+					<tr>
+						<td>Tags (CSV)</td>
+						<td><input type="text" id="add-word-tags" placeholder="Tag(s) (optional)"></td>
+					</tr>
+					<tr>
+						<td>Description</td>
+						<td><textarea id="add-word-desc" placeholder="Description (optional)"></textarea></td>
+					</tr>
+				</table>
+			</div>
+			<div class="content-container-horizontal">
+				<div class="content-text button-positive" onclick="addWord(document.querySelector('#add-word-word').value, document.querySelector('#add-word-def').value, document.querySelector('#add-word-lang').value, document.querySelector('#add-word-tags').value, document.querySelector('#add-word-desc').value);">Add Word</div>
+			</div>
+		</div>
+		<div class="popup" id="popup-edit-word">
+			<div class="content-header">Edit Word</div>
+			<div class="content-table">
+				<table class="no-border">
+					<tr>
+						<td>Word</td>
+						<td><input type="text" id="edit-word-word" placeholder="Word"></td>
+					</tr>
+					<tr>
+						<td>Definition</td>
+						<td><input type="text" id="edit-word-def" placeholder="Definition"></td>
+					</tr>
+					<tr>
+						<td>Language</td>
+						<td><input type="text" id="edit-word-lang" placeholder="Language"></td>
+					</tr>
+					<tr>
+						<td>Tags (CSV)</td>
+						<td><input type="text" id="edit-word-tags" placeholder="Tags (optional)"></td>
+					</tr>
+					<tr>
+						<td>Description</td>
+						<td><textarea id="edit-word-desc" placeholder="Description (optional)"></textarea></td>
+					</tr>
+				</table>
+			</div>
+			<div class="content-container-horizontal">
+				<div class="content-text button-positive" id="save-word-btn">Save Word</div>
+			</div>
+		</div>
+		<div class="popup" id="popup-filter-words">
+			<div class="content-header">Filter Words</div>
+			<div class="content-text">Filter words by tag (CSV). Clear text box to remove filters.</div>
+			<input type="text" id="edit-filters" placeholder="Filter(s)...">
+			<div class="content-container-horizontal">
+				<div class="content-text button-positive" onclick="filterWords(stringCleanup(document.querySelector('#edit-filters').value).length ? document.querySelector('#edit-filters').value.split(',').map(e => stringCleanup(e)) : []);">Filter Words</div>
+			</div>
+			<div class="content-text" id="filter-results" style="width: 100%;"></div>
+		</div>
+		
+		<div id="loading"></div>
+		
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/math.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/rate_funcs.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/utils.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/animate.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/cookies.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/math_jax.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/math_jax_config.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/utils/themes.js"></script>
+		<script src="https://cdn.jsdelivr.net/gh/brandenleong1/utils@latest/themes/popup.js"></script>
+		
+		<script src="script.js"></script>
+		<script src="dictionary.js"></script>
+		<script src="init.js"></script>
+	</body>
+</html>

@@ -213,7 +213,7 @@ function createDomTermFromEntry(entry) {
 	let expandBtn = document.createElement('div');
 	expandBtn.classList.add('term-expand-btn');
 	expandBtn.onmouseenter = function() {
-		Animate.transform(expandBtn, {rotateTo: Math.PI / 8, rateFunc: RateFuncs.wiggle, runTime: 100});
+		Animate.transform(expandBtn, {rotateTo: Math.PI / 8, rateFunc: RateFuncs.wiggle, runTime: 400});
 	};
 	expandBtn.onclick = function() {
 		expandTerm(term);
